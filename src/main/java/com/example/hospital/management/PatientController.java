@@ -7,11 +7,12 @@ import java.util.HashMap;
 import java.util.List;
 
 @RestController
+@RequestMapping("/patient")
 public class PatientController {
 
     HashMap<Integer,Patient> patientDb = new HashMap<>();
 
-    @PostMapping("/addPatient")
+    @PostMapping("/add")
     public String addPatient(@RequestParam("patientId")Integer patientId, @RequestParam("name")String name,
                            @RequestParam("disease")String disease, @RequestParam("age")Integer age)
     {
@@ -20,7 +21,7 @@ public class PatientController {
         return "Patient added successfully";
     }
 
-    @PostMapping("/addPatientViaRequestBody")
+    @PostMapping("/addViaRequestBody")
     public String addPatient(@RequestBody Patient patient)
     {
         int key = patient.getPatientId();
@@ -28,14 +29,21 @@ public class PatientController {
         return "Patient added successfully";
     }
 
-    @GetMapping("/getPatientInfo")
+    @GetMapping("/getInfoViaPathVariable/{patientId}")
+    public Patient getPatientViaPath(@PathVariable("patientId")Integer patientId)
+    {
+        Patient patient = patientDb.get(patientId);
+        return patient;
+    }
+
+    @GetMapping("/getInfo")
     public Patient getPatient(@RequestParam("patientId")Integer patientId)
     {
         Patient patient = patientDb.get(patientId);
         return patient;
     }
 
-    @GetMapping("/getAllPatients")
+    @GetMapping("/getAll")
     public List<Patient> getAllPatients()
     {
         List<Patient> listOfPatients= new ArrayList<>();
@@ -46,7 +54,7 @@ public class PatientController {
         return listOfPatients;
     }
 
-    @GetMapping("/getPatientByName")
+    @GetMapping("/getByName")
     public Patient getPatientByName(@RequestParam("name")String name)
     {
         for(Patient patient: patientDb.values())
@@ -55,5 +63,50 @@ public class PatientController {
                 return patient;
         }
         return null;
+    }
+
+    @GetMapping("/getListAgeDisease/{age}/{disease}")
+    public List<Patient> getPatientListAgeDisease(@PathVariable("age")Integer age, @PathVariable("disease")String disease)
+    {
+        List<Patient> patientList = new ArrayList<>();
+        for(Patient patient: patientDb.values())
+        {
+            if(patient.getAge()>age && patient.getDisease().equals(disease))
+                patientList.add(patient);
+
+        }
+        return patientList;
+    }
+
+    @PutMapping("/update")
+    public String updatePatient(@RequestBody Patient patient)
+    {
+        int key = patient.getPatientId();
+        if(patientDb.containsKey(key))
+        {
+            patientDb.put(key,patient);
+            return "Patient Details Added Successfully";
+        }
+        return "Patient does not exist";
+    }
+
+    @PutMapping("/updateDisease")
+    public String updateDisease(@RequestParam("patientId")Integer patientId, @RequestParam("disease")String disease)
+    {
+        if(patientDb.containsKey(patientId))
+        {
+            Patient patient = patientDb.get(patientId);
+            patient.setDisease(disease);
+            patientDb.put(patientId,patient);
+            return "Disease update successfully";
+        }
+        return "Patient does not exist";
+    }
+
+    @DeleteMapping("/delete")
+    public String deletePatient(@RequestParam("patientId")Integer patientId)
+    {
+        patientDb.remove(patientId);
+        return "Patient Deleted Successfully";
     }
 }
